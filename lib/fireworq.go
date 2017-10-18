@@ -41,27 +41,38 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 		return nil, err
 	}
 
-	m := make(map[string]float64)
-	var totalCompletes int64
-	var totalElapsed int64
+	var sum FireworqStats
 	for _, s := range stats {
-		totalCompletes += s.TotalCompletes
-		totalElapsed += s.TotalElapsed
-		m["queue_running_workers"] += float64(s.TotalWorkers - s.IdleWorkers)
-		m["queue_idle_workers"] += float64(s.IdleWorkers)
-		m["queue_outstanding_jobs"] += float64(s.OutstandingJobs)
-		m["jobs_failure"] += float64(s.TotalCompletes - s.TotalSuccesses)
-		m["jobs_success"] += float64(s.TotalSuccesses)
-		m["jobs_outstanding"] += float64(s.TotalPops - s.TotalCompletes)
-		m["jobs_waiting"] += float64(s.TotalPushes - s.TotalPops)
-		m["jobs_events_pushed"] += float64(s.TotalPushes)
-		m["jobs_events_popped"] += float64(s.TotalPops)
-		m["jobs_events_failed"] += float64(s.TotalFailures)
-		m["jobs_events_succeeded"] += float64(s.TotalSuccesses)
-		m["jobs_events_completed"] += float64(s.TotalCompletes)
+		sum.TotalPushes += s.TotalPushes
+		sum.TotalPops += s.TotalPops
+		sum.TotalSuccesses += s.TotalSuccesses
+		sum.TotalFailures += s.TotalFailures
+		sum.TotalCompletes += s.TotalCompletes
+		sum.TotalElapsed += s.TotalElapsed
+		sum.OutstandingJobs += s.OutstandingJobs
+		sum.TotalWorkers += s.TotalWorkers
+		sum.IdleWorkers += s.IdleWorkers
 	}
-	if totalCompletes > 0 {
-		m["jobs_average_elapsed_time"] = float64(totalElapsed) / float64(totalCompletes)
+
+	m := make(map[string]float64)
+	m["queue_running_workers"] = float64(sum.TotalWorkers - sum.IdleWorkers)
+	m["queue_idle_workers"] = float64(sum.IdleWorkers)
+	m["queue_outstanding_jobs"] = float64(sum.OutstandingJobs)
+	m["jobs_failure"] = float64(sum.TotalCompletes - sum.TotalSuccesses)
+	m["jobs_success"] = float64(sum.TotalSuccesses)
+	m["jobs_outstanding"] = float64(sum.TotalPops - sum.TotalCompletes)
+	if sum.TotalPushes > sum.TotalPops {
+		m["jobs_waiting"] = float64(sum.TotalPushes - sum.TotalPops)
+	} else {
+		m["jobs_waiting"] = 0
+	}
+	m["jobs_events_pushed"] = float64(sum.TotalPushes)
+	m["jobs_events_popped"] = float64(sum.TotalPops)
+	m["jobs_events_failed"] = float64(sum.TotalFailures)
+	m["jobs_events_succeeded"] = float64(sum.TotalSuccesses)
+	m["jobs_events_completed"] = float64(sum.TotalCompletes)
+	if sum.TotalCompletes > 0 {
+		m["jobs_average_elapsed_time"] = float64(sum.TotalElapsed) / float64(sum.TotalCompletes)
 	} else {
 		m["jobs_average_elapsed_time"] = 0
 	}
