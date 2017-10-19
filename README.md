@@ -1,7 +1,7 @@
 mackerel-plugin-fireworq
 ========================
 
-A fireworq custom metrics plugin for mackerel.io agent.
+A [Fireworq][] custom metrics plugin for mackerel.io agent.
 
 ## Synopsis
 
@@ -15,3 +15,5 @@ mackerel-plugin-fireworq [-scheme=<'http'|'https'>] [-host=<host>] [-port=<manag
 [plugin.metrics.fireworq]
 command = "/path/to/mackerel-plugin-fireworq"
 ```
+
+[Fireworq]: https://github.com/fireworq/fireworq
