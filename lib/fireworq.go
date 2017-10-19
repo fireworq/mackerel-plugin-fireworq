@@ -87,8 +87,8 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 			Label: p.LabelPrefix + " Queue Workers",
 			Unit:  "integer",
 			Metrics: []mp.Metrics{
-				{Name: "queue_running_workers", Label: "Running", Stacked: true},
 				{Name: "queue_idle_workers", Label: "Idle", Stacked: true},
+				{Name: "queue_running_workers", Label: "Running", Stacked: true},
 			},
 		},
 		"queue.buffer": {
