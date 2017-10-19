@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"strings"
 
 	mp "github.com/mackerelio/go-mackerel-plugin"
 )
@@ -146,7 +147,7 @@ func Do() {
 	fireworq.URI = fmt.Sprintf("%s://%s:%s", *optScheme, *optHost, *optPort)
 	fireworq.Prefix = *optPrefix
 	if *optLabelPrefix == "" {
-		*optLabelPrefix = *optPrefix
+		*optLabelPrefix = strings.Title(*optPrefix)
 	}
 	fireworq.LabelPrefix = *optLabelPrefix
 
