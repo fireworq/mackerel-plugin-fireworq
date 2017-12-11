@@ -80,6 +80,7 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 		m["jobs_average_elapsed_time"] = 0
 	}
 	m["active_nodes"] = float64(sum.ActiveNodes)
+	m["active_nodes_percentage"] = float64(sum.ActiveNodes*100) / float64(len(stats))
 
 	return m, nil
 }
@@ -91,6 +92,7 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 			Unit:  "integer",
 			Metrics: []mp.Metrics{
 				{Name: "active_nodes", Label: "Active"},
+				{Name: "active_nodes_percentage", Label: "Active (%)"},
 			},
 		},
 		"queue.workers": {
