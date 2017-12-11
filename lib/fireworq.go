@@ -20,6 +20,7 @@ type FireworqStats struct {
 	OutstandingJobs int64 `json:"outstanding_jobs"`
 	TotalWorkers    int64 `json:"total_workers"`
 	IdleWorkers     int64 `json:"idle_workers"`
+	ActiveNodes     int64 `json:"active_nodes"`
 }
 
 type FireworqPlugin struct {
@@ -53,6 +54,7 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 		sum.OutstandingJobs += s.OutstandingJobs
 		sum.TotalWorkers += s.TotalWorkers
 		sum.IdleWorkers += s.IdleWorkers
+		sum.ActiveNodes += s.ActiveNodes
 	}
 
 	m := make(map[string]float64)
@@ -77,12 +79,20 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 	} else {
 		m["jobs_average_elapsed_time"] = 0
 	}
+	m["active_nodes"] = float64(sum.ActiveNodes)
 
 	return m, nil
 }
 
 func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 	graphdef := map[string]mp.Graphs{
+		"node": {
+			Label: p.LabelPrefix + " Node",
+			Unit:  "integer",
+			Metrics: []mp.Metrics{
+				{Name: "active_nodes", Label: "Active"},
+			},
+		},
 		"queue.workers": {
 			Label: p.LabelPrefix + " Queue Workers",
 			Unit:  "integer",
