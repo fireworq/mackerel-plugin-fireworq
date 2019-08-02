@@ -18,6 +18,17 @@ command = "/path/to/mackerel-plugin-fireworq"
 
 [Fireworq]: https://github.com/fireworq/fireworq
 
+## Installation
+### Install with mkr
+```bash
+mkr plugin install --upgrade fireworq/mackerel-plugin-fireworq
+```
+
+### Build from source
+```bash
+go get github.com/fireworq/mackerel-check-fireworq
+```
+
 ## How to release
 See Makefile for details.
 ```
