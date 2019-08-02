@@ -44,7 +44,7 @@ clean:
 
 .PHONY: bump
 bump: $(GOBIN)/gobump
-	git tag "v$(shell sh -c 'read -p "input next version: " v && echo $$v')"
+	git tag "v$(shell sh -c 'read -p "input next version: " v && echo $$v | tr -d v')"
 	git push
 	git push --tags
 
