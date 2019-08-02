@@ -20,7 +20,7 @@ show-version:
 
 .PHONY: cross
 cross: $(GOBIN)/goxz
-	goxz -n $(BIN) .
+	goxz -n $(BIN) -z .
 
 $(GOBIN)/goxz:
 	GO111MODULE=off go get github.com/Songmu/goxz/cmd/goxz
