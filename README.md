@@ -17,3 +17,9 @@ command = "/path/to/mackerel-plugin-fireworq"
 ```
 
 [Fireworq]: https://github.com/fireworq/fireworq
+
+## How to release
+See Makefile for details.
+```
+make release
+```
