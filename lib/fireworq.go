@@ -10,6 +10,7 @@ import (
 	mp "github.com/mackerelio/go-mackerel-plugin"
 )
 
+// FireworqStats represents the statistics of Fireworq
 type FireworqStats struct {
 	TotalPushes     int64 `json:"total_pushes"`
 	TotalPops       int64 `json:"total_pops"`
@@ -23,12 +24,14 @@ type FireworqStats struct {
 	ActiveNodes     int64 `json:"active_nodes"`
 }
 
+// FireworqPlugin is a mackerel plugin
 type FireworqPlugin struct {
 	URI         string
 	Prefix      string
 	LabelPrefix string
 }
 
+// FetchMetrics fetchs the metrics
 func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 	resp, err := http.Get(p.URI + "/queues/stats")
 	if err != nil {
@@ -85,6 +88,7 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 	return m, nil
 }
 
+// GraphDefinition of FireworqPlugin
 func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 	graphdef := map[string]mp.Graphs{
 		"node": {
@@ -142,10 +146,12 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 	return graphdef
 }
 
+// MetricKeyPrefix of FireworqPlugin
 func (p FireworqPlugin) MetricKeyPrefix() string {
 	return p.Prefix
 }
 
+// Do the plugin
 func Do() {
 	optScheme := flag.String("scheme", "http", "Scheme")
 	optHost := flag.String("host", "localhost", "Host")
