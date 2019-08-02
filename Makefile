@@ -1,4 +1,5 @@
 BIN := mackerel-plugin-fireworq
+VERSION := $$(make -s show-version)
 GOBIN ?= $(shell go env GOPATH)/bin
 export GO111MODULE=on
 
@@ -12,6 +13,10 @@ build:
 .PHONY: install
 install:
 	go install ./...
+
+.PHONY: show-version
+show-version:
+	@git describe --abbrev=0 --tags
 
 .PHONY: cross
 cross: $(GOBIN)/goxz
@@ -45,7 +50,7 @@ bump: $(GOBIN)/gobump
 
 .PHONY: upload
 upload: $(GOBIN)/ghr
-	ghr "v$(VERSION)" goxz
+	ghr $(VERSION) goxz
 
 $(GOBIN)/ghr:
 	GO111MODULE=off go get github.com/tcnksm/ghr
