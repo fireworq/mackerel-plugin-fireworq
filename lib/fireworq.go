@@ -24,11 +24,65 @@ type FireworqStats struct {
 	ActiveNodes     int64 `json:"active_nodes"`
 }
 
+// InspectedJob describes a job in a queue.
+type InspectedJob struct {
+	ID         uint64          `json:"id"`
+	Category   string          `json:"category"`
+	URL        string          `json:"url"`
+	Payload    json.RawMessage `json:"payload,omitempty"`
+	Status     string          `json:"status"`
+	CreatedAt  time.Time       `json:"created_at"`
+	NextTry    time.Time       `json:"next_try"`
+	Timeout    uint            `json:"timeout"`
+	FailCount  uint            `json:"fail_count"`
+	MaxRetries uint            `json:"max_retries"`
+	RetryDelay uint            `json:"retry_delay"`
+}
+
+// InspectedJobs describes a (page of) job list in a queue.
+type InspectedJobs struct {
+	Jobs       []InspectedJob `json:"jobs"`
+	NextCursor string         `json:"next_cursor"`
+}
+
 // FireworqPlugin is a mackerel plugin
 type FireworqPlugin struct {
 	URI         string
 	Prefix      string
 	LabelPrefix string
+}
+
+func (p FireworqPlugin) fetchJob(queue string, list string) (*InspectedJob, error) {
+	resp, err := http.Get(p.URI + fmt.Sprintf("/queue/%s/%s?order=asc&limit=1", queue, list))
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	var jobs *InspectedJobs
+	decoder := json.NewDecoder(resp.Body)
+	err = decoder.Decode(&jobs)
+	if err != nil {
+		return nil, err
+	}
+	if len(jobs.Jobs) > 0 {
+		return &jobs.Jobs[0], nil
+	}
+
+	return nil, nil
+}
+
+func (p FireworqPlugin) fetchMostDelayedJob(queue string) (*InspectedJob, error) {
+	job, err := p.fetchJob(queue, "waiting")
+	if err != nil {
+		return nil, err
+	}
+
+	if job != nil {
+		return job, nil
+	}
+
+	return p.fetchJob(queue, "grabbed")
 }
 
 // FetchMetrics fetchs the metrics
