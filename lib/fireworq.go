@@ -8,6 +8,8 @@ import (
 	"strings"
 	"time"
 
+	"regexp"
+
 	mp "github.com/mackerelio/go-mackerel-plugin"
 )
 
@@ -146,6 +148,10 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 			if job, _ := p.fetchMostDelayedJob(q); job != nil {
 				delay = float64(time.Since(job.NextTry).Seconds())
 			}
+			// Escape queue name to confirm to metric name specification.
+			// See also: https://mackerel.io/ja/api-docs/entry/host-metrics#post-graphdef
+			r := regexp.MustCompile("[^-a-zA-Z0-9_]")
+			q = r.ReplaceAllString(q, "-")
 			m[fmt.Sprintf("queue.delay.%s", q)] = delay
 		}
 	}
