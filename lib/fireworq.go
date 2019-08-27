@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"strings"
+	"time"
 
 	mp "github.com/mackerelio/go-mackerel-plugin"
 )
@@ -138,6 +139,16 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 	}
 	m["active_nodes"] = float64(sum.ActiveNodes)
 	m["active_nodes_percentage"] = float64(sum.ActiveNodes*100) / float64(len(stats))
+
+	for q, s := range stats {
+		if s.ActiveNodes >= 1 {
+			var delay float64
+			if job, _ := p.fetchMostDelayedJob(q); job != nil {
+				delay = float64(time.Since(job.NextTry).Seconds())
+			}
+			m[fmt.Sprintf("queue.delay.%s", q)] = delay
+		}
+	}
 
 	return m, nil
 }
