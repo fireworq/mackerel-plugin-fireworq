@@ -114,6 +114,13 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 				{Name: "queue_outstanding_jobs", Label: "Outstanding Jobs"},
 			},
 		},
+		"queue.delay": {
+			Label: p.LabelPrefix + " Delayed Time in sec",
+			Unit:  "integer",
+			Metrics: []mp.Metrics{
+				{Name: "*"},
+			},
+		},
 		"jobs": {
 			Label: p.LabelPrefix + " Jobs",
 			Unit:  "integer",
