@@ -12,6 +12,12 @@ import (
 	mp "github.com/mackerelio/go-mackerel-plugin"
 )
 
+var (
+	// We need escape queue name to confirm to metric name specification.
+	// See also: https://mackerel.io/ja/api-docs/entry/host-metrics#post-graphdef
+	invalidNameReg = regexp.MustCompile("[^-a-zA-Z0-9_]")
+)
+
 // FireworqStats represents the statistics of Fireworq
 type FireworqStats struct {
 	TotalPushes     int64 `json:"total_pushes"`
@@ -143,10 +149,7 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 
 	for q, s := range stats {
 		if s.ActiveNodes >= 1 {
-			// Escape queue name to confirm to metric name specification.
-			// See also: https://mackerel.io/ja/api-docs/entry/host-metrics#post-graphdef
-			r := regexp.MustCompile("[^-a-zA-Z0-9_]")
-			q = r.ReplaceAllString(q, "-")
+			q = invalidNameReg.ReplaceAllString(q, "-")
 
 			if job, err := p.fetchMostDelayedJob(q); err == nil {
 				var delay float64
