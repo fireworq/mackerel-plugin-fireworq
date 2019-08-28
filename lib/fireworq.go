@@ -192,7 +192,7 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 		},
 		"queue.delay": {
 			Label: p.LabelPrefix + " Delayed Time in sec",
-			Unit:  "integer",
+			Unit:  "float",
 			Metrics: []mp.Metrics{
 				{Name: "*", Label: "%1"},
 			},
