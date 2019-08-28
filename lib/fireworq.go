@@ -194,7 +194,7 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 			Label: p.LabelPrefix + " Delayed Time in sec",
 			Unit:  "integer",
 			Metrics: []mp.Metrics{
-				{Name: "*"},
+				{Name: "*", Label: "%1"},
 			},
 		},
 		"jobs": {
