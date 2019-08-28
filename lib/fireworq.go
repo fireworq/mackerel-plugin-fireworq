@@ -149,8 +149,8 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 			r := regexp.MustCompile("[^-a-zA-Z0-9_]")
 			q = r.ReplaceAllString(q, "-")
 
-			var delay float64
 			if job, err := p.fetchMostDelayedJob(q); err == nil {
+				var delay float64
 				if job != nil {
 					delay = float64(time.Since(job.NextTry).Seconds())
 				}
