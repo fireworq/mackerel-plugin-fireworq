@@ -5,10 +5,9 @@ import (
 	"flag"
 	"fmt"
 	"net/http"
+	"regexp"
 	"strings"
 	"time"
-
-	"regexp"
 
 	mp "github.com/mackerelio/go-mackerel-plugin"
 )
