@@ -148,9 +148,8 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 	m["active_nodes_percentage"] = float64(sum.ActiveNodes*100) / float64(len(stats))
 
 	for q, s := range stats {
+		q = invalidNameReg.ReplaceAllString(q, "-")
 		if s.ActiveNodes >= 1 {
-			q = invalidNameReg.ReplaceAllString(q, "-")
-
 			if job, err := p.fetchMostDelayedJob(q); err == nil {
 				var delay float64
 				if job != nil {
@@ -158,6 +157,8 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 				}
 				m[fmt.Sprintf("queue.delay.%s", q)] = delay
 			}
+		} else {
+			m[fmt.Sprintf("queue.delay.%s", q)] = 0
 		}
 	}
 
