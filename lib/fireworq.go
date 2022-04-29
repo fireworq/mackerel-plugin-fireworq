@@ -20,16 +20,17 @@ var (
 
 // FireworqStats represents the statistics of Fireworq
 type FireworqStats struct {
-	TotalPushes     int64 `json:"total_pushes"`
-	TotalPops       int64 `json:"total_pops"`
-	TotalSuccesses  int64 `json:"total_successes"`
-	TotalFailures   int64 `json:"total_failures"`
-	TotalCompletes  int64 `json:"total_completes"`
-	TotalElapsed    int64 `json:"total_elapsed"`
-	OutstandingJobs int64 `json:"outstanding_jobs"`
-	TotalWorkers    int64 `json:"total_workers"`
-	IdleWorkers     int64 `json:"idle_workers"`
-	ActiveNodes     int64 `json:"active_nodes"`
+	TotalPushes            int64 `json:"total_pushes"`
+	TotalPops              int64 `json:"total_pops"`
+	TotalSuccesses         int64 `json:"total_successes"`
+	TotalFailures          int64 `json:"total_failures"`
+	TotalPermanentFailures int64 `json:"total_permanent_failures"`
+	TotalCompletes         int64 `json:"total_completes"`
+	TotalElapsed           int64 `json:"total_elapsed"`
+	OutstandingJobs        int64 `json:"outstanding_jobs"`
+	TotalWorkers           int64 `json:"total_workers"`
+	IdleWorkers            int64 `json:"idle_workers"`
+	ActiveNodes            int64 `json:"active_nodes"`
 }
 
 // InspectedJob describes a job in a queue.
@@ -162,6 +163,23 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 		}
 	}
 
+	for q, s := range stats {
+		metricName := fmt.Sprintf("queue.permanent_failures.%s", invalidNameReg.ReplaceAllString(q, "-"))
+		if s.ActiveNodes >= 1 {
+			m[metricName] = float64(s.TotalPermanentFailures)
+		} else {
+			m[metricName] = 0
+		}
+	}
+
+	for q, s := range stats {
+		metricName := fmt.Sprintf("queue.pushes.%s", invalidNameReg.ReplaceAllString(q, "-"))
+		if s.ActiveNodes >= 1 {
+			m[metricName] = float64(s.TotalPushes)
+		} else {
+			m[metricName] = 0
+		}
+	}
 	return m, nil
 }
 
@@ -196,6 +214,20 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 			Unit:  "float",
 			Metrics: []mp.Metrics{
 				{Name: "*", Label: "%1"},
+			},
+		},
+		"queue.permanent_failures": {
+			Label: p.LabelPrefix + " Permanently Failed Jobs",
+			Unit:  "integer",
+			Metrics: []mp.Metrics{
+				{Name: "*", Label: "%1", Diff: true, Stacked: true},
+			},
+		},
+		"queue.pushes": {
+			Label: p.LabelPrefix + " Pushed Jobs",
+			Unit:  "integer",
+			Metrics: []mp.Metrics{
+				{Name: "*", Label: "%1", Diff: true, Stacked: true},
 			},
 		},
 		"jobs": {
