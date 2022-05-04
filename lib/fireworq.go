@@ -20,16 +20,17 @@ var (
 
 // FireworqStats represents the statistics of Fireworq
 type FireworqStats struct {
-	TotalPushes     int64 `json:"total_pushes"`
-	TotalPops       int64 `json:"total_pops"`
-	TotalSuccesses  int64 `json:"total_successes"`
-	TotalFailures   int64 `json:"total_failures"`
-	TotalCompletes  int64 `json:"total_completes"`
-	TotalElapsed    int64 `json:"total_elapsed"`
-	OutstandingJobs int64 `json:"outstanding_jobs"`
-	TotalWorkers    int64 `json:"total_workers"`
-	IdleWorkers     int64 `json:"idle_workers"`
-	ActiveNodes     int64 `json:"active_nodes"`
+	TotalPushes            int64 `json:"total_pushes"`
+	TotalPops              int64 `json:"total_pops"`
+	TotalSuccesses         int64 `json:"total_successes"`
+	TotalFailures          int64 `json:"total_failures"`
+	TotalPermanentFailures int64 `json:"total_permanent_failures"`
+	TotalCompletes         int64 `json:"total_completes"`
+	TotalElapsed           int64 `json:"total_elapsed"`
+	OutstandingJobs        int64 `json:"outstanding_jobs"`
+	TotalWorkers           int64 `json:"total_workers"`
+	IdleWorkers            int64 `json:"idle_workers"`
+	ActiveNodes            int64 `json:"active_nodes"`
 }
 
 // InspectedJob describes a job in a queue.
@@ -114,6 +115,7 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 		sum.TotalPops += s.TotalPops
 		sum.TotalSuccesses += s.TotalSuccesses
 		sum.TotalFailures += s.TotalFailures
+		sum.TotalPermanentFailures += s.TotalPermanentFailures
 		sum.TotalCompletes += s.TotalCompletes
 		sum.TotalElapsed += s.TotalElapsed
 		sum.OutstandingJobs += s.OutstandingJobs
@@ -137,6 +139,7 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 	m["jobs_events_pushed"] = float64(sum.TotalPushes)
 	m["jobs_events_popped"] = float64(sum.TotalPops)
 	m["jobs_events_failed"] = float64(sum.TotalFailures)
+	m["jobs_events_permanently_failed"] = float64(sum.TotalPermanentFailures)
 	m["jobs_events_succeeded"] = float64(sum.TotalSuccesses)
 	m["jobs_events_completed"] = float64(sum.TotalCompletes)
 	if sum.TotalCompletes > 0 {
@@ -215,6 +218,7 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 				{Name: "jobs_events_pushed", Label: "Pushed", Diff: true, Stacked: true},
 				{Name: "jobs_events_popped", Label: "Popped", Diff: true, Stacked: true},
 				{Name: "jobs_events_failed", Label: "Failed", Diff: true, Stacked: true},
+				{Name: "jobs_events_permanently_failed", Label: "Failed", Diff: true, Stacked: true},
 				{Name: "jobs_events_succeeded", Label: "Succeeded", Diff: true, Stacked: true},
 				{Name: "jobs_events_completed", Label: "Completed", Diff: true, Stacked: true},
 			},
