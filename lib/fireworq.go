@@ -59,6 +59,7 @@ type FireworqPlugin struct {
 	URI         string
 	Prefix      string
 	LabelPrefix string
+	QueueStats  []QueueStat
 }
 
 func (p FireworqPlugin) fetchJob(queue string, list string) (*InspectedJob, error) {
@@ -165,6 +166,17 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 		}
 	}
 
+	for _, qstat := range p.QueueStats {
+		for queue, fstat := range stats {
+			metricName := fmt.Sprintf(qstat.MetricName()+".%s", invalidNameReg.ReplaceAllString(queue, "-"))
+			if fstat.ActiveNodes >= 1 {
+				m[metricName] = float64(qstat.Metric(fstat))
+			} else {
+				m[metricName] = 0
+			}
+		}
+	}
+
 	return m, nil
 }
 
@@ -231,6 +243,15 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 			},
 		},
 	}
+	for _, qstat := range p.QueueStats {
+		graphdef[qstat.MetricName()] = mp.Graphs{
+			Label: p.LabelPrefix + " " + qstat.Label(),
+			Unit:  "integer",
+			Metrics: []mp.Metrics{
+				{Name: "*", Label: "%1", Diff: true, Stacked: true},
+			},
+		}
+	}
 	return graphdef
 }
 
@@ -247,6 +268,7 @@ func Do() {
 	optPrefix := flag.String("metric-key-prefix", "fireworq", "Metric key prefix")
 	optLabelPrefix := flag.String("metric-label-prefix", "", "Metric Label prefix")
 	optTempfile := flag.String("tempfile", "", "Temp file name")
+	optQueueStats := flag.String("queue-stats", "", "Queue stats")
 	flag.Parse()
 
 	var fireworq FireworqPlugin
@@ -256,6 +278,13 @@ func Do() {
 		*optLabelPrefix = strings.Title(*optPrefix)
 	}
 	fireworq.LabelPrefix = *optLabelPrefix
+
+	rawQueueStats := strings.Split(strings.Join(strings.Fields(*optQueueStats), ""), ",")
+	stats := make([]QueueStat, 0)
+	for _, s := range rawQueueStats {
+		stats = append(stats, NewQueueStat(s))
+	}
+	fireworq.QueueStats = stats
 
 	helper := mp.NewMackerelPlugin(fireworq)
 	if *optTempfile != "" {
