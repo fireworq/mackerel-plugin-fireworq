@@ -1,6 +1,6 @@
 module github.com/fireworq/mackerel-plugin-fireworq
 
-go 1.12
+go 1.18
 
 require (
 	github.com/mackerelio/go-mackerel-plugin v0.1.2
