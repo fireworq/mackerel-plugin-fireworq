@@ -280,7 +280,7 @@ func Do() {
 	fireworq.LabelPrefix = *optLabelPrefix
 
 	rawQueueStats := strings.Split(strings.Join(strings.Fields(*optQueueStats), ""), ",")
-	stats := make([]QueueStat, 0)
+	stats := make([]QueueStat, 0, len(rawQueueStats))
 	for _, s := range rawQueueStats {
 		stats = append(stats, NewQueueStat(s))
 	}
