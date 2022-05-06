@@ -6,8 +6,10 @@ A [Fireworq][] custom metrics plugin for mackerel.io agent.
 ## Synopsis
 
 ```shell
-mackerel-plugin-fireworq [-scheme=<'http'|'https'>] [-host=<host>] [-port=<manage_port>] [-tempfile=<tempfile>] [-metric-key-prefix=<prefix>] [-metric-label-prefix=<label-prefix>]
+mackerel-plugin-fireworq [-scheme=<'http'|'https'>] [-host=<host>] [-port=<manage_port>] [-tempfile=<tempfile>] [-metric-key-prefix=<prefix>] [-metric-label-prefix=<label-prefix>] [-queue-stats=<comma-separated-queue-stats>]
 ```
+
+Queue stats can contain `pushes`, `pops`, `successes`, `failed`, `permanent_failed`, `completes`. The default is nothing. If you want to record all, use `-queue-stats='pushes,pops,successes,failures,permanent_failures,completes'`.
 
 ## Example of mackerel-agent.conf
 

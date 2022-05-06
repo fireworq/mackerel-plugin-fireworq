@@ -20,16 +20,17 @@ var (
 
 // FireworqStats represents the statistics of Fireworq
 type FireworqStats struct {
-	TotalPushes     int64 `json:"total_pushes"`
-	TotalPops       int64 `json:"total_pops"`
-	TotalSuccesses  int64 `json:"total_successes"`
-	TotalFailures   int64 `json:"total_failures"`
-	TotalCompletes  int64 `json:"total_completes"`
-	TotalElapsed    int64 `json:"total_elapsed"`
-	OutstandingJobs int64 `json:"outstanding_jobs"`
-	TotalWorkers    int64 `json:"total_workers"`
-	IdleWorkers     int64 `json:"idle_workers"`
-	ActiveNodes     int64 `json:"active_nodes"`
+	TotalPushes            int64 `json:"total_pushes"`
+	TotalPops              int64 `json:"total_pops"`
+	TotalSuccesses         int64 `json:"total_successes"`
+	TotalFailures          int64 `json:"total_failures"`
+	TotalPermanentFailures int64 `json:"total_permanent_failures"`
+	TotalCompletes         int64 `json:"total_completes"`
+	TotalElapsed           int64 `json:"total_elapsed"`
+	OutstandingJobs        int64 `json:"outstanding_jobs"`
+	TotalWorkers           int64 `json:"total_workers"`
+	IdleWorkers            int64 `json:"idle_workers"`
+	ActiveNodes            int64 `json:"active_nodes"`
 }
 
 // InspectedJob describes a job in a queue.
@@ -58,6 +59,7 @@ type FireworqPlugin struct {
 	URI         string
 	Prefix      string
 	LabelPrefix string
+	QueueStats  []QueueStat
 }
 
 func (p FireworqPlugin) fetchJob(queue string, list string) (*InspectedJob, error) {
@@ -114,6 +116,7 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 		sum.TotalPops += s.TotalPops
 		sum.TotalSuccesses += s.TotalSuccesses
 		sum.TotalFailures += s.TotalFailures
+		sum.TotalPermanentFailures += s.TotalPermanentFailures
 		sum.TotalCompletes += s.TotalCompletes
 		sum.TotalElapsed += s.TotalElapsed
 		sum.OutstandingJobs += s.OutstandingJobs
@@ -137,6 +140,7 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 	m["jobs_events_pushed"] = float64(sum.TotalPushes)
 	m["jobs_events_popped"] = float64(sum.TotalPops)
 	m["jobs_events_failed"] = float64(sum.TotalFailures)
+	m["jobs_events_permanently_failed"] = float64(sum.TotalPermanentFailures)
 	m["jobs_events_succeeded"] = float64(sum.TotalSuccesses)
 	m["jobs_events_completed"] = float64(sum.TotalCompletes)
 	if sum.TotalCompletes > 0 {
@@ -159,6 +163,17 @@ func (p FireworqPlugin) FetchMetrics() (map[string]float64, error) {
 			}
 		} else {
 			m[metricName] = 0
+		}
+	}
+
+	for _, qstat := range p.QueueStats {
+		for queue, fstat := range stats {
+			metricName := fmt.Sprintf(qstat.MetricName()+".%s", invalidNameReg.ReplaceAllString(queue, "-"))
+			if fstat.ActiveNodes >= 1 {
+				m[metricName] = float64(qstat.Metric(fstat))
+			} else {
+				m[metricName] = 0
+			}
 		}
 	}
 
@@ -215,6 +230,7 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 				{Name: "jobs_events_pushed", Label: "Pushed", Diff: true, Stacked: true},
 				{Name: "jobs_events_popped", Label: "Popped", Diff: true, Stacked: true},
 				{Name: "jobs_events_failed", Label: "Failed", Diff: true, Stacked: true},
+				{Name: "jobs_events_permanently_failed", Label: "Permanently Failed", Diff: true, Stacked: true},
 				{Name: "jobs_events_succeeded", Label: "Succeeded", Diff: true, Stacked: true},
 				{Name: "jobs_events_completed", Label: "Completed", Diff: true, Stacked: true},
 			},
@@ -226,6 +242,15 @@ func (p FireworqPlugin) GraphDefinition() map[string]mp.Graphs {
 				{Name: "jobs_average_elapsed_time", Label: "Average"},
 			},
 		},
+	}
+	for _, qstat := range p.QueueStats {
+		graphdef[qstat.MetricName()] = mp.Graphs{
+			Label: p.LabelPrefix + " " + qstat.Label(),
+			Unit:  "integer",
+			Metrics: []mp.Metrics{
+				{Name: "*", Label: "%1", Diff: true, Stacked: true},
+			},
+		}
 	}
 	return graphdef
 }
@@ -243,6 +268,7 @@ func Do() {
 	optPrefix := flag.String("metric-key-prefix", "fireworq", "Metric key prefix")
 	optLabelPrefix := flag.String("metric-label-prefix", "", "Metric Label prefix")
 	optTempfile := flag.String("tempfile", "", "Temp file name")
+	optQueueStats := flag.String("queue-stats", "", "Queue stats")
 	flag.Parse()
 
 	var fireworq FireworqPlugin
@@ -252,6 +278,13 @@ func Do() {
 		*optLabelPrefix = strings.Title(*optPrefix)
 	}
 	fireworq.LabelPrefix = *optLabelPrefix
+
+	rawQueueStats := strings.Split(strings.Join(strings.Fields(*optQueueStats), ""), ",")
+	stats := make([]QueueStat, 0, len(rawQueueStats))
+	for _, s := range rawQueueStats {
+		stats = append(stats, NewQueueStat(s))
+	}
+	fireworq.QueueStats = stats
 
 	helper := mp.NewMackerelPlugin(fireworq)
 	if *optTempfile != "" {
